@@ -135,14 +135,39 @@ class DroneSecurityAgent:
             
         # 3. Object-based searching
         else:
-            # Clean up punctuation to extract keywords
-            keywords = [w for w in query.replace("?", "").replace(".", "").split() if len(w) > 3]
+            # Check if database is empty first to guide the user
+            all_logs = database.get_synced_logs()
+            if not all_logs:
+                return "⚠️ **The security database is currently empty!**\n\nPlease make sure to click the **'▶️ Launch Patrol'** button in the left sidebar first. Once the drone completes its perimeter flight and indexes the multi-spectral video frames, I will be ready to parse and audit the visual logs for you!"
+
+            # Extract semantic synonyms to map conversational questions to exact indexed visual terms
+            search_terms = set()
+            clean_query = query.replace("?", "").replace(".", "").replace(",", "")
+            
+            for word in clean_query.split():
+                w = word.strip()
+                if w in ["person", "people", "someone", "individual", "man", "guy", "hoodie", "intruder", "loiter", "loitering", "human"]:
+                    search_terms.update(["person", "individual", "loitering"])
+                elif w in ["car", "vehicle", "truck", "sedan", "ford", "f150", "pickup", "transport"]:
+                    search_terms.update(["vehicle", "truck", "sedan"])
+                elif w in ["gate", "entrance", "exit", "door", "lock", "locked"]:
+                    search_terms.update(["gate", "entrance", "locked"])
+                elif w in ["drum", "barrel", "leak", "chemical", "spill", "hazard", "waste", "tipped", "tipped-over"]:
+                    search_terms.update(["chemical", "drum", "tipped-over", "leak"])
+                elif w in ["fence", "perimeter", "wall", "boundary"]:
+                    search_terms.update(["fence", "perimeter"])
+                elif w in ["secure", "nominal", "clear", "safe", "quiet"]:
+                    search_terms.update(["secure", "nominal", "quiet"])
+                elif len(w) > 3 and w not in ["were", "there", "what", "with", "from", "show", "about", "could", "some", "spotted", "seen"]:
+                    search_terms.add(w)
+            
+            # Execute database search queries for all terms
             results = []
-            for kw in keywords:
-                res = database.search_frames(kw)
+            for term in search_terms:
+                res = database.search_frames(term)
                 results.extend(res)
                 
-            # Deduplicate by frame id
+            # Deduplicate matching database frame rows
             seen = set()
             unique_results = []
             for r in results:
@@ -151,13 +176,15 @@ class DroneSecurityAgent:
                     unique_results.append(r)
                     
             if not unique_results:
-                return f"I analyzed the visual logs and database and couldn't find any occurrences of details matching your query. Would you like me to perform a broader search?"
+                return f"🔍 I analyzed the visual database for terms matching `{list(search_terms)}` but couldn't find any corresponding occurrences in the recent patrol log. Let me know if you would like me to audit a different target zone."
                 
-            response = f"🔍 **Search Results for your query:**\n\n"
-            response += f"I found **{len(unique_results)} relevant event(s)** in the drone video archive:\n\n"
+            response = f"🔍 **Search Results for: \"{user_query}\"**\n\n"
+            response += f"I discovered **{len(unique_results)} relevant visual log(s)** in the drone patrol archive:\n\n"
             for r in unique_results:
                 time_only = r['timestamp'].split('T')[1][:8] if 'T' in r['timestamp'] else r['timestamp']
-                response += f"- **[{time_only}] near {r['location_name']}**: \"{r['description']}\" *(Tags: {r['tags']})*\n"
+                response += f"- **[{time_only}] near {r['location_name']}** (Alt: {r['altitude']}m | Bat: {r['battery']}%):\n"
+                response += f"  *Visual Report:* \"{r['description']}\"\n"
+                response += f"  *System Tags:* `{r['tags']}`\n\n"
             return response
 
     def generate_video_summary(self) -> str:
