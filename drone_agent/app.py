@@ -246,8 +246,6 @@ if "messages" not in st.session_state:
 # Preserving lifecycle modules
 if "sim_telemetry" not in st.session_state:
     st.session_state.sim_telemetry = telemetry.TelemetrySimulator()
-if "agent_model" not in st.session_state:
-    st.session_state.agent_model = agent.DroneSecurityAgent()
 if "rules_engine" not in st.session_state:
     st.session_state.rules_engine = rules.AlertRulesEngine()
 
@@ -647,7 +645,7 @@ with tab3:
             
         with st.chat_message("assistant"):
             with st.spinner("AI security analyst auditing database records..."):
-                agent_runner = st.session_state.agent_model
+                agent_runner = agent.DroneSecurityAgent()
                 response = agent_runner.run(active_query)
                 st.markdown(response)
                 st.session_state.messages.append({"role": "assistant", "content": response})
@@ -660,7 +658,7 @@ with tab4:
     st.write("Generates formal summary insights of the mission for reporting to executive property managers and insurance audits (Bonus Feature).")
     
     if st.session_state.patrol_state["completed"] or len(database.get_synced_logs()) > 0:
-        agent_runner = st.session_state.agent_model
+        agent_runner = agent.DroneSecurityAgent()
         
         with st.spinner("Compiling summary details..."):
             exec_summary = agent_runner.generate_video_summary()
