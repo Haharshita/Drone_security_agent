@@ -91,7 +91,7 @@ def test_agent_fallback_search_objects():
         
         # Test object query
         resp = sec_agent.run("Was there a truck spotted?")
-        assert "🔍 **Search Results for your query:**" in resp
+        assert "Search Results for:" in resp
         assert "Office Gate" in resp
         assert "suspicious blue truck" in resp
     finally:
