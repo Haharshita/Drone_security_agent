@@ -22,3 +22,6 @@ env/
 # IDEs
 .vscode/
 .idea/
+
+# PDF compiled reports
+*.pdf
