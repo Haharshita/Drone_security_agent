@@ -567,10 +567,9 @@ with tab1:
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color='#94a3b8', size=11)),
                 font=dict(color='#94a3b8', family="monospace"),
                 xaxis=dict(gridcolor='rgba(255,255,255,0.05)', showline=True, linecolor='rgba(255,255,255,0.1)'),
-                yaxis=dict(title="Battery %", gridcolor='rgba(255,255,255,0.05)', titlefont=dict(color='#22c55e'), tickfont=dict(color='#22c55e')),
+                yaxis=dict(title=dict(text="Battery %", font=dict(color='#22c55e')), gridcolor='rgba(255,255,255,0.05)', tickfont=dict(color='#22c55e')),
                 yaxis2=dict(
-                    title="Altitude (m)",
-                    titlefont=dict(color='#38bdf8'),
+                    title=dict(text="Altitude (m)", font=dict(color='#38bdf8')),
                     tickfont=dict(color='#38bdf8'),
                     anchor="x",
                     overlaying="y",
